@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>iShareProfit – Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f2f8;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ══════════════════════════════
+       SIDEBAR OVERLAY
+    ══════════════════════════════ */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 200;
+    }
+    .overlay.open { display: block; }
+
+    /* SIDEBAR */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 290px;
+      height: 100%;
+      background: linear-gradient(180deg, #1a2a6c 0%, #1e3a8a 60%, #1a2a6c 100%);
+      z-index: 300;
+      transform: translateX(-100%);
+      transition: transform .3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar.open { transform: translateX(0); }
+
+    .sidebar-logo {
+      background: #000;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sidebar-logo img { height: 60px; object-fit: contain; }
+    .sidebar-close {
+      color: #fff;
+      font-size: 26px;
+      cursor: pointer;
+      line-height: 1;
+      background: none;
+      border: none;
+    }
+
+    .nav-list { padding: 14px 0; flex: 1; }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 22px;
+      color: #fff;
+      font-size: 17px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background .2s;
+      position: relative;
+    }
+    .nav-item:hover { background: rgba(255,255,255,.08); }
+    .nav-item.active {
+      background: #2563eb;
+      border-radius: 0 30px 30px 0;
+      margin-right: 20px;
+    }
+    .nav-item .nav-icon {
+      width: 42px; height: 42px;
+      border: 2px solid rgba(255,255,255,.5);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .nav-item.active .nav-icon {
+      background: rgba(255,255,255,.15);
+      border-color: rgba(255,255,255,.8);
+    }
+    .nav-icon svg { width: 22px; height: 22px; fill: #fff; }
+    .nav-arrow {
+      margin-left: auto;
+      font-size: 18px;
+      color: rgba(255,255,255,.6);
+    }
+
+    /* ══════════════════════════════
+       TOP HEADER
+    ══════════════════════════════ */
+    .top-header {
+      background: linear-gradient(135deg, #1a2a6c, #1e3a8a);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .avatar {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .avatar svg { width: 36px; height: 36px; fill: rgba(255,255,255,.8); }
+    .hamburger {
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding: 4px;
+    }
+    .hamburger span {
+      display: block;
+      width: 26px; height: 3px;
+      background: #fff;
+      border-radius: 3px;
+    }
+
+    /* ══════════════════════════════
+       GREEN DASHBOARD BANNER
+    ══════════════════════════════ */
+    .dash-banner {
+      background: linear-gradient(135deg, #2d6a4f, #40916c, #1b4332);
+      padding: 22px 20px 30px;
+    }
+    .dash-banner h1 {
+      color: #fff;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .breadcrumb {
+      color: rgba(255,255,255,.75);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: .5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .breadcrumb span { color: rgba(255,255,255,.5); }
+
+    /* ══════════════════════════════
+       MAIN CONTENT
+    ══════════════════════════════ */
+    .content {
+      padding: 18px 14px 40px;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* Balance Cards */
+    .balance-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 22px 20px 18px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 10px rgba(0,0,0,.07);
+      position: relative;
+      overflow: hidden;
+    }
+    .balance-card::before {
+      content: '';
+      position: absolute;
+      top: -20px; right: -20px;
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      background: rgba(30,58,138,.05);
+    }
+    .balance-card .lbl {
+      font-size: 13px;
+      font-weight: 700;
+      color: #888;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .balance-card .amount {
+      font-size: 30px;
+      font-weight: 800;
+      color: #28a745;
+    }
+    .balance-card .card-icon {
+      width: 56px; height: 56px;
+      object-fit: contain;
+      opacity: .85;
+      flex-shrink: 0;
+    }
+    .card-icon-wrap {
+      width: 58px; height: 58px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card-icon-wrap svg { width: 52px; height: 52px; }
+
+    /* INVEST button (dark navy, full width below card) */
+    .invest-btn {
+      width: 100%;
+      background: #0f1f5c;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      padding: 16px;
+      border: none;
+      border-radius: 0 0 14px 14px;
+      cursor: pointer;
+      margin-top: -14px;
+      margin-bottom: 14px;
+      display: block;
+      text-align: center;
+      text-decoration: none;
+      transition: background .2s;
+    }
+    .invest-btn:hover { background: #1a3080; }
+
+    /* Action buttons row */
+    .action-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .action-btn {
+      flex: 1;
+      background: #0f1f5c;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+      padding: 16px 8px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      display: block;
+      transition: background .2s;
+    }
+    .action-btn:hover { background: #1a3080; }
+
+    .referral-btn {
+      width: 60%;
+      display: block;
+      margin: 0 auto 20px;
+      background: #0f1f5c;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+      padding: 16px 8px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      transition: background .2s;
+    }
+    .referral-btn:hover { background: #1a3080; }
+
+    /* Info Cards */
+    .info-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 22px 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.07);
+    }
+    .info-card h3 {
+      font-size: 17px;
+      font-weight: 800;
+      color: #1a1a2e;
+      margin-bottom: 14px;
+    }
+    .info-card .ref-link {
+      color: #2222cc;
+      font-size: 14px;
+      word-break: break-all;
+      margin-bottom: 8px;
+      display: block;
+    }
+    .info-card .ref-note {
+      font-style: italic;
+      font-size: 13px;
+      color: #555;
+    }
+
+    /* Account Status rows */
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #f3f3f3;
+      font-size: 14px;
+    }
+    .status-row:last-child { border-bottom: none; }
+    .status-row .key { color: #777; font-weight: 500; }
+    .status-row .val { font-weight: 700; color: #1a1a2e; }
+    .badge-active {
+      background: #d4edda;
+      color: #155724;
+      padding: 3px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- OVERLAY -->
+  <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <img src="image.jpg" alt="iShareProfit"/>
+      <button class="sidebar-close" onclick="closeSidebar()">✕</button>
+    </div>
+    <nav class="nav-list">
+
+      <a href="dashboard.html" class="nav-item active">
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        </div>
+        Dashboard
+        <span class="nav-arrow">›</span>
+      </a>
+
+      <a href="deposit.html" class="nav-item">
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 18v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1h-9a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h9zm-9-2h10V8H12v8zm4-2.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg>
+        </div>
+        Deposit
+        <span class="nav-arrow">›</span>
+      </a>
+
+      <a href="transactions.html" class="nav-item">
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
+        </div>
+        Transactions
+        <span class="nav-arrow">›</span>
+      </a>
+
+      <a href="withdraw.html" class="nav-item">
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+        </div>
+        Withdraw
+        <span class="nav-arrow">›</span>
+      </a>
+
+      <a href="settings.html" class="nav-item">
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.06-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a6.96 6.96 0 0 0-1.62-.94l-.36-2.54A.484.484 0 0 0 14 2h-4a.484.484 0 0 0-.48.41l-.36 2.54a7.3 7.3 0 0 0-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.74 8.87a.48.48 0 0 0 .12.61l2.03 1.58c-.04.3-.06.62-.06.94s.02.64.06.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.36 1.04.67 1.62.94l.36 2.54c.05.24.27.41.48.41h4c.24 0 .44-.17.48-.41l.36-2.54a7.3 7.3 0 0 0 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.03-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"/></svg>
+        </div>
+        Settings
+        <span class="nav-arrow">›</span>
+      </a>
+
+      <a href="security.html" class="nav-item">
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 4a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm0 14c-2.67 0-5.01-1.37-6.4-3.44.75-1.1 3.45-1.56 6.4-1.56s5.65.46 6.4 1.56C17.01 17.63 14.67 19 12 19z"/></svg>
+        </div>
+        Security
+        <span class="nav-arrow">›</span>
+      </a>
+
+      <a href="login.html" class="nav-item" onclick="logout()">
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24"><path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5a2 2 0 0 0-2 2v4h2V5h14v14H5v-4H3v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/></svg>
+        </div>
+        Logout
+        <span class="nav-arrow">›</span>
+      </a>
+
+    </nav>
+  </div>
+
+  <!-- TOP HEADER -->
+  <div class="top-header">
+    <div class="avatar">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+    </div>
+    <button class="hamburger" onclick="openSidebar()">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <!-- GREEN BANNER -->
+  <div class="dash-banner">
+    <h1>Dashboard</h1>
+    <div class="breadcrumb">HOME <span>→</span> DASHBOARD</div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="content">
+
+    <!-- TOTAL FUNDS CARD -->
+    <div class="balance-card" style="border-radius:14px 14px 0 0; margin-bottom:0;">
+      <div>
+        <div class="lbl">TOTAL FUNDS</div>
+        <div class="amount" id="totalFunds">₦0.00</div>
+      </div>
+      <div class="card-icon-wrap">
+        <!-- POS terminal icon -->
+        <svg viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="2" width="48" height="76" rx="5" fill="#1a1a2e"/>
+          <rect x="14" y="10" width="36" height="22" rx="3" fill="#444"/>
+          <rect x="14" y="38" width="8" height="8" rx="2" fill="#fff"/>
+          <rect x="28" y="38" width="8" height="8" rx="2" fill="#fff"/>
+          <rect x="42" y="38" width="8" height="8" rx="2" fill="#fff"/>
+          <rect x="14" y="52" width="8" height="8" rx="2" fill="#fff"/>
+          <rect x="28" y="52" width="8" height="8" rx="2" fill="#fff"/>
+          <rect x="42" y="52" width="8" height="8" rx="2" fill="#fff"/>
+          <rect x="14" y="66" width="36" height="8" rx="2" fill="#28a745"/>
+        </svg>
+      </div>
+    </div>
+    <a href="invest.html" class="invest-btn">INVEST</a>
+
+    <!-- AVAILABLE BALANCE CARD -->
+    <div class="balance-card">
+      <div>
+        <div class="lbl">AVAILABLE BALANCE</div>
+        <div class="amount" id="availBal">₦0.00</div>
+      </div>
+      <div class="card-icon-wrap">
+        <!-- money bag hand icon -->
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="20" y="2" width="24" height="14" rx="4" fill="#888"/>
+          <ellipse cx="32" cy="34" rx="18" ry="20" fill="#333"/>
+          <text x="32" y="40" text-anchor="middle" font-size="18" fill="#fff" font-weight="bold">$</text>
+          <path d="M10 52 Q32 62 54 52" stroke="#555" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <path d="M6 58 Q32 70 58 58" stroke="#333" stroke-width="5" fill="none" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="action-row">
+      <a href="deposit.html" class="action-btn">DEPOSIT MONEY</a>
+      <a href="withdraw.html" class="action-btn">WITHDRAW FUNDS</a>
+    </div>
+    <a href="referrals.html" class="referral-btn">MY REFERRALS</a>
+
+    <!-- REFERRAL LINK CARD -->
+    <div class="info-card">
+      <h3>Referral Link</h3>
+      <span class="ref-link" id="refLink">Loading…</span>
+      <span class="ref-note">You earn 5% for every downline referred</span>
+    </div>
+
+    <!-- ACCOUNT STATUS CARD -->
+    <div class="info-card">
+      <h3>Account Status</h3>
+      <div class="status-row">
+        <span class="key">Username</span>
+        <span class="val" id="statusUsername">—</span>
+      </div>
+      <div class="status-row">
+        <span class="key">Full Name</span>
+        <span class="val" id="statusName">—</span>
+      </div>
+      <div class="status-row">
+        <span class="key">Email</span>
+        <span class="val" id="statusEmail">—</span>
+      </div>
+      <div class="status-row">
+        <span class="key">Upline</span>
+        <span class="val" id="statusUpline">—</span>
+      </div>
+      <div class="status-row">
+        <span class="key">Account Status</span>
+        <span class="badge-active">Active</span>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getFirestore, doc, getDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBTkls-WbffHErGeX9bMYPpV5pqbCe14gY",
+      authDomain: "datacash-104dd.firebaseapp.com",
+      projectId: "datacash-104dd",
+      storageBucket: "datacash-104dd.firebasestorage.app",
+      messagingSenderId: "101692098149",
+      appId: "1:101692098149:web:55ccc9f1f105647488a88c"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+
+    /* ── Load user from session ── */
+    const raw = sessionStorage.getItem('ishareUser');
+    if (!raw) { window.location.href = 'login.html'; }
+
+    const user = JSON.parse(raw);
+
+    /* ── Populate UI ── */
+    function fmt(n) {
+      return '₦' + parseFloat(n || 0).toLocaleString('en-NG', { minimumFractionDigits: 2 });
+    }
+
+    document.getElementById('totalFunds').textContent   = fmt(user.wallet || 0);
+    document.getElementById('availBal').textContent     = fmt(user.wallet || 0);
+    document.getElementById('statusUsername').textContent = user.username || '—';
+    document.getElementById('statusName').textContent   = (user.firstName || '') + ' ' + (user.lastName || '');
+    document.getElementById('statusEmail').textContent  = user.email || '—';
+    document.getElementById('statusUpline').textContent = user.upline || 'N/A';
+
+    const refUrl = window.location.origin + '/index.html?ref=' + (user.username || '');
+    document.getElementById('refLink').textContent = refUrl;
+
+    /* ── Refresh from Firestore ── */
+    if (user.uid) {
+      getDoc(doc(db, 'users', user.uid)).then(snap => {
+        if (snap.exists()) {
+          const fresh = snap.data();
+          sessionStorage.setItem('ishareUser', JSON.stringify(fresh));
+          document.getElementById('totalFunds').textContent = fmt(fresh.wallet);
+          document.getElementById('availBal').textContent   = fmt(fresh.wallet);
+        }
+      }).catch(console.error);
+    }
+
+    /* ── Logout ── */
+    window.logout = function () {
+      sessionStorage.removeItem('ishareUser');
+    };
+  </script>
+
+  <script>
+    /* Sidebar open/close */
+    function openSidebar() {
+      document.getElementById('sidebar').classList.add('open');
+      document.getElementById('overlay').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('overlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  </script>
+</body>
+</html>
