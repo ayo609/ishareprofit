@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>iShareProfit – Manage Withdrawals</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f2f8;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ══ SIDEBAR ══ */
+    .overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.45); z-index: 200;
+    }
+    .overlay.open { display: block; }
+
+    .sidebar {
+      position: fixed; top: 0; left: 0;
+      width: 290px; height: 100%;
+      background: linear-gradient(180deg,#0d1b3e,#112855 60%,#0d1b3e);
+      z-index: 300; transform: translateX(-100%);
+      transition: transform .3s ease;
+      display: flex; flex-direction: column;
+    }
+    .sidebar.open { transform: translateX(0); }
+
+    .sidebar-logo {
+      background:#000; padding:18px 20px;
+      display:flex; align-items:center; justify-content:space-between;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .sidebar-logo img { height:48px; object-fit:contain; }
+    .sidebar-close {
+      color:#fff; font-size:26px; cursor:pointer;
+      background:none; border:none;
+    }
+    .sidebar-label {
+      color:rgba(255,255,255,.4); font-size:11px;
+      text-transform:uppercase; letter-spacing:2px;
+      padding:18px 22px 8px; font-weight:700;
+    }
+    .nav-list { padding:0 0 14px; flex:1; overflow-y:auto; }
+    .nav-item {
+      display:flex; align-items:center; gap:14px;
+      padding:14px 22px; color:rgba(255,255,255,.7);
+      font-size:15px; font-weight:500;
+      cursor:pointer; text-decoration:none; transition:all .2s;
+    }
+    .nav-item:hover { background:rgba(255,255,255,.06); color:#fff; }
+    .nav-item.active {
+      background:#2563eb; color:#fff; border-radius:0 30px 30px 0;
+      margin-right:20px; font-weight:600;
+    }
+    .nav-icon {
+      width:38px; height:38px; border-radius:10px;
+      display:flex; align-items:center;
+      justify-content:center; flex-shrink:0;
+      background:rgba(255,255,255,.08);
+    }
+    .nav-item.active .nav-icon { background:rgba(255,255,255,.2); }
+    .nav-icon svg { width:20px; height:20px; fill:#fff; }
+
+    /* ══ HEADER ══ */
+    .top-header {
+      background:linear-gradient(135deg,#0d1b3e,#112855);
+      padding:14px 18px; display:flex; align-items:center;
+      justify-content:space-between; position:sticky; top:0; z-index:100;
+    }
+    .header-left { display:flex; align-items:center; gap:12px; }
+    .admin-avatar {
+      width:42px; height:42px; border-radius:50%;
+      background:#f59e0b; display:flex; align-items:center;
+      justify-content:center; font-weight:800; color:#0d1b3e; font-size:18px;
+    }
+    .header-info .hi-name { color:#fff; font-size:15px; font-weight:600; }
+    .header-info .hi-role { color:rgba(255,255,255,.5); font-size:12px; }
+    .hamburger {
+      background:none; border:none; cursor:pointer;
+      display:flex; flex-direction:column; gap:5px; padding:4px;
+    }
+    .hamburger span { display:block; width:26px; height:3px; background:#fff; border-radius:3px; }
+
+    /* ══ BANNER ══ */
+    .dash-banner {
+      background:linear-gradient(135deg,#b71c1c,#c62828,#b71c1c);
+      padding:22px 20px 50px;
+    }
+    .dash-banner h1 { color:#fff; font-size:26px; font-weight:700; }
+    .breadcrumb {
+      color:rgba(255,255,255,.7); font-size:13px;
+      display:flex; align-items:center; gap:8px; margin-top:4px;
+    }
+    .breadcrumb span { color:rgba(255,255,255,.4); }
+
+    /* ══ STATS ROW ══ */
+    .stats-row {
+      margin:-28px 16px 0; position:relative; z-index:10;
+      display:flex; gap:12px; flex-wrap:wrap;
+    }
+    .stat-mini {
+      flex:1; min-width:100px; background:#fff;
+      border-radius:14px; padding:16px; text-align:center;
+      box-shadow:0 2px 12px rgba(0,0,0,.05); border:1px solid #eef0f2;
+    }
+    .stat-mini .sm-value { font-size:20px; font-weight:800; color:#1a1a2e; }
+    .stat-mini .sm-label { font-size:11px; color:#888; font-weight:600; text-transform:uppercase; letter-spacing:.5px; }
+
+    /* ══ CARD ══ */
+    .card {
+      background:#fff; border-radius:20px 20px 0 0;
+      margin:16px 0 0; padding:24px 18px 36px;
+      min-height:50vh;
+    }
+
+    .card-header {
+      display:flex; align-items:center; justify-content:space-between;
+      flex-wrap:wrap; gap:12px; margin-bottom:20px;
+    }
+    .card-title {
+      font-size:18px; font-weight:800; color:#1a1a2e;
+      display:flex; align-items:center; gap:8px;
+    }
+    .card-title svg { width:20px; height:20px; fill:#c62828; }
+
+    /* Filter buttons */
+    .filter-row { display:flex; gap:8px; flex-wrap:wrap; }
+    .filter-btn {
+      padding:8px 16px; border:1.5px solid #d0d0d0;
+      border-radius:20px; background:#fff; color:#555;
+      font-size:13px; font-weight:600; cursor:pointer;
+      transition:all .2s; white-space:nowrap;
+    }
+    .filter-btn:hover { border-color:#c62828; color:#c62828; }
+    .filter-btn.active { background:#c62828; color:#fff; border-color:#c62828; }
+
+    /* Table */
+    .table-wrap {
+      overflow-x:auto; -webkit-overflow-scrolling:touch;
+    }
+    table {
+      width:100%; border-collapse:collapse;
+      font-size:13px; min-width:800px;
+    }
+    th {
+      background:#f8f9fb; color:#555; font-weight:700;
+      padding:12px 10px; text-align:left;
+      border-bottom:2px solid #e0e0e0; white-space:nowrap;
+      font-size:12px; text-transform:uppercase; letter-spacing:.5px;
+    }
+    td {
+      padding:10px; border-bottom:1px solid #f0f0f0;
+      color:#333; white-space:nowrap;
+    }
+    tr:hover td { background:#fafbff; }
+
+    .status-badge {
+      padding:4px 10px; border-radius:12px;
+      font-size:11px; font-weight:700; text-transform:uppercase;
+      display:inline-block;
+    }
+    .status-badge.pending   { background:#fff3e0; color:#e65100; }
+    .status-badge.approved  { background:#e8f5e9; color:#2e7d32; }
+    .status-badge.paid      { background:#e8f5e9; color:#2e7d32; }
+    .status-badge.rejected  { background:#fce4ec; color:#c62828; }
+
+    .amount-cell { font-weight:700; color:#c62828; }
+
+    .action-btn {
+      padding:5px 10px; border:1.5px solid #d0d0d0;
+      border-radius:6px; background:#fff; cursor:pointer;
+      font-size:11px; font-weight:600; transition:all .2s;
+      margin:0 2px;
+    }
+    .action-btn.approve { color:#2e7d32; border-color:#2e7d32; }
+    .action-btn.approve:hover { background:#2e7d32; color:#fff; }
+    .action-btn.reject  { color:#c62828; border-color:#c62828; }
+    .action-btn.reject:hover { background:#c62828; color:#fff; }
+    .action-btn.view    { color:#1a2a6c; border-color:#1a2a6c; }
+    .action-btn.view:hover { background:#1a2a6c; color:#fff; }
+    .action-btn.paid    { color:#1565c0; border-color:#1565c0; }
+    .action-btn.paid:hover { background:#1565c0; color:#fff; }
+
+    /* ══ MODAL ══ */
+    .modal-overlay {
+      display:none; position:fixed; inset:0;
+      background:rgba(0,0,0,.6); z-index:400;
+      align-items:center; justify-content:center;
+    }
+    .modal-overlay.open { display:flex; }
+    .modal {
+      background:#fff; border-radius:16px;
+      padding:28px 22px; width:90%; max-width:500px;
+      max-height:85vh; overflow-y:auto;
+    }
+    .modal h3 {
+      font-size:20px; font-weight:800; color:#1a1a2e;
+      margin-bottom:20px; display:flex; align-items:center; gap:10px;
+    }
+    .modal h3 svg { width:22px; height:22px; }
+    .detail-row {
+      display:flex; justify-content:space-between;
+      padding:10px 0; border-bottom:1px solid #f5f5f5;
+      font-size:14px;
+    }
+    .detail-row .dk { color:#555; font-weight:500; }
+    .detail-row .dv { font-weight:700; color:#1a1a2e; }
+    .modal-actions {
+      display:flex; gap:10px; margin-top:20px; justify-content:flex-end;
+      flex-wrap:wrap;
+    }
+    .btn {
+      padding:10px 20px; border:none; border-radius:8px;
+      font-size:14px; font-weight:600; cursor:pointer;
+      transition:all .2s;
+    }
+    .btn-approve { background:#2e7d32; color:#fff; }
+    .btn-approve:hover { background:#1b5e20; }
+    .btn-paid    { background:#1565c0; color:#fff; }
+    .btn-paid:hover { background:#0d47a1; }
+    .btn-reject  { background:#c62828; color:#fff; }
+    .btn-reject:hover { background:#b71c1c; }
+    .btn-cancel  { background:#eee; color:#555; }
+    .btn-cancel:hover { background:#ddd; }
+
+    /* ══ TOAST ══ */
+    .toast {
+      position:fixed; bottom:28px; left:50%;
+      transform:translateX(-50%) translateY(80px);
+      background:#1a1a2e; color:#fff; padding:12px 22px;
+      border-radius:30px; font-size:14px; opacity:0;
+      transition:all .35s ease; z-index:9999; white-space:nowrap;
+    }
+    .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+    .toast.success { background:#28a745; }
+    .toast.error   { background:#dc3545; }
+
+    .loading-spinner {
+      text-align:center; padding:40px;
+    }
+    .loading-spinner .spinner {
+      display:inline-block; width:36px; height:36px;
+      border:4px solid #e0e0e0; border-top-color:#c62828;
+      border-radius:50%; animation:spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    footer {
+      text-align:center; padding:20px;
+      font-size:13px; color:#888;
+      background:#f0f2f8;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <img src="image.jpg" alt="iShareProfit"/>
+      <button class="sidebar-close" onclick="closeSidebar()">✕</button>
+    </div>
+    <div class="sidebar-label">Main Menu</div>
+    <nav class="nav-list">
+      <a href="admin-dashboard.html" class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg></div>
+        Dashboard
+      </a>
+      <a href="admin-users.html" class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></div>
+        All Users
+      </a>
+      <a href="admin-credentials.html" class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2z"/></svg></div>
+        User Credentials
+      </a>
+    </nav>
+    <div class="sidebar-label">Transactions</div>
+    <nav class="nav-list">
+      <a href="admin-deposits.html" class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M21 18v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1h-9a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h9z"/></svg></div>
+        Deposits
+      </a>
+      <a href="admin-withdrawals.html" class="nav-item active">
+        <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg></div>
+        Withdrawals
+      </a>
+    </nav>
+    <div class="sidebar-label">Settings</div>
+    <nav class="nav-list">
+      <a href="admin-settings.html" class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.06-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a6.96 6.96 0 0 0-1.62-.94l-.36-2.54A.484.484 0 0 0 14 2h-4a.484.484 0 0 0-.48.41l-.36 2.54a7.3 7.3 0 0 0-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.74 8.87a.48.48 0 0 0 .12.61l2.03 1.58c-.04.3-.06.62-.06.94s.02.64.06.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.36 1.04.67 1.62.94l.36 2.54c.05.24.27.41.48.41h4c.24 0 .44-.17.48-.41l.36-2.54a7.3 7.3 0 0 0 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.03-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"/></svg></div>
+        Settings
+      </a>
+      <a href="admin-login.html" class="nav-item" onclick="logout()">
+        <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5a2 2 0 0 0-2 2v4h2V5h14v14H5v-4H3v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/></svg></div>
+        Logout
+      </a>
+    </nav>
+  </div>
+
+  <!-- ══════════════ MAIN CONTENT ══════════════ -->
+  <div class="top-header">
+    <div class="header-left">
+      <div class="admin-avatar" id="adminInitial">A</div>
+      <div class="header-info">
+        <div class="hi-name" id="adminName">Admin</div>
+        <div class="hi-role">Administrator</div>
+      </div>
+    </div>
+    <button class="hamburger" onclick="openSidebar()">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <div class="dash-banner">
+    <h1>Withdrawal Management</h1>
+    <div class="breadcrumb">Admin <span>→</span> Withdrawals</div>
+  </div>
+
+  <!-- Mini Stats -->
+  <div class="stats-row">
+    <div class="stat-mini">
+      <div class="sm-value" id="statAll">0</div>
+      <div class="sm-label">All Requests</div>
+    </div>
+    <div class="stat-mini">
+      <div class="sm-value" id="statPending" style="color:#e65100;">0</div>
+      <div class="sm-label">Pending</div>
+    </div>
+    <div class="stat-mini">
+      <div class="sm-value" id="statApproved" style="color:#2e7d32;">0</div>
+      <div class="sm-label">Approved</div>
+    </div>
+    <div class="stat-mini">
+      <div class="sm-value" id="statRejected" style="color:#c62828;">0</div>
+      <div class="sm-label">Rejected</div>
+    </div>
+    <div class="stat-mini">
+      <div class="sm-value" id="statPaid" style="color:#1565c0;">0</div>
+      <div class="sm-label">Paid</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+        Withdrawal Requests
+      </div>
+      <div class="filter-row">
+        <button class="filter-btn active" onclick="filterWithdrawals('all', this)">All</button>
+        <button class="filter-btn" onclick="filterWithdrawals('pending', this)">Pending</button>
+        <button class="filter-btn" onclick="filterWithdrawals('approved', this)">Approved</button>
+        <button class="filter-btn" onclick="filterWithdrawals('paid', this)">Paid</button>
+        <button class="filter-btn" onclick="filterWithdrawals('rejected', this)">Rejected</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="loading-spinner" id="loadingSpinner"><div class="spinner"></div></div>
+      <table id="withdrawalsTable" style="display:none;">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Amount</th>
+            <th>Method</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="withdrawalsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- VIEW MODAL -->
+  <div class="modal-overlay" id="viewModal">
+    <div class="modal">
+      <h3>
+        <svg viewBox="0 0 24 24" style="fill:#c62828;"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+        Withdrawal Details
+      </h3>
+      <div class="detail-row"><span class="dk">User:</span><span class="dv" id="vUser"></span></div>
+      <div class="detail-row"><span class="dk">Email:</span><span class="dv" id="vEmail"></span></div>
+      <div class="detail-row"><span class="dk">Amount:</span><span class="dv" id="vAmount"></span></div>
+      <div class="detail-row"><span class="dk">Method:</span><span class="dv" id="vMethod"></span></div>
+      <div class="detail-row"><span class="dk">Status:</span><span class="dv" id="vStatus"></span></div>
+      <div class="detail-row"><span class="dk">Requested:</span><span class="dv" id="vDate"></span></div>
+      <div class="detail-row" id="processedRow" style="display:none;"><span class="dk">Processed:</span><span class="dv" id="vProcessed"></span></div>
+      <div class="detail-row" id="processedByRow" style="display:none;"><span class="dk">Processed By:</span><span class="dv" id="vProcessedBy"></span></div>
+      <div class="modal-actions">
+        <button class="btn btn-cancel" onclick="closeViewModal()">Close</button>
+        <button class="btn btn-approve" id="modalApproveBtn" onclick="approveFromModal()">✅ Approve</button>
+        <button class="btn btn-paid" id="modalPaidBtn" onclick="markPaidFromModal()">💵 Mark as Paid</button>
+        <button class="btn btn-reject" id="modalRejectBtn" onclick="rejectFromModal()">❌ Reject</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>© 2026 ishareprofit | Admin Panel</footer>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      doc,
+      updateDoc,
+      increment,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBTkls-WbffHErGeX9bMYPpV5pqbCe14gY",
+      authDomain: "datacash-104dd.firebaseapp.com",
+      projectId: "datacash-104dd",
+      storageBucket: "datacash-104dd.firebasestorage.app",
+      messagingSenderId: "101692098149",
+      appId: "1:101692098149:web:55ccc9f1f105647488a88c"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+
+    const raw = sessionStorage.getItem('ishareAdmin') || localStorage.getItem('ishareAdmin');
+    if (!raw) window.location.href = 'admin-login.html';
+    const admin = JSON.parse(raw);
+    document.getElementById('adminInitial').textContent = (admin.username||'A').charAt(0).toUpperCase();
+    document.getElementById('adminName').textContent = admin.username||'Admin';
+
+    let allWithdrawals = [];
+    let currentWithdrawalId = null;
+
+    function showToast(msg, type = '') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show ' + type;
+      setTimeout(() => { t.className = 'toast'; }, 3500);
+    }
+
+    function formatDate(date) {
+      if (!date) return '—';
+      const d = date.toDate ? date.toDate() : new Date(date);
+      return d.toLocaleDateString('en-NG', { month:'short', day:'numeric', year:'numeric' }) + 
+             ' ' + d.toLocaleTimeString('en-NG', { hour:'2-digit', minute:'2-digit' });
+    }
+
+    /* ── Load Withdrawals ── */
+    async function loadWithdrawals() {
+      const spinner = document.getElementById('loadingSpinner');
+      const table   = document.getElementById('withdrawalsTable');
+      try {
+        const snap = await getDocs(collection(db, 'withdrawals'));
+        allWithdrawals = [];
+        snap.forEach(doc => {
+          const d = doc.data();
+          allWithdrawals.push({
+            id: doc.id,
+            uid: d.uid,
+            username: d.username || '—',
+            email: d.email || '—',
+            amount: d.amount || '₦0.00',
+            amountRaw: d.amountRaw || 0,
+            method: d.method || 'Bank Transfer',
+            status: d.status || 'pending',
+            requestedAt: d.requestedAt,
+            processedAt: d.processedAt,
+            processedBy: d.processedBy
+          });
+        });
+
+        allWithdrawals.sort((a, b) => {
+          const da = a.requestedAt?.toDate?.() || new Date(0);
+          const db2 = b.requestedAt?.toDate?.() || new Date(0);
+          return db2 - da;
+        });
+
+        updateStats();
+        renderTable('all');
+        spinner.style.display = 'none';
+        table.style.display = 'table';
+      } catch (err) {
+        console.error(err);
+        spinner.innerHTML = '<p style="color:#c62828;">Failed to load withdrawals.</p>';
+      }
+    }
+
+    function updateStats() {
+      document.getElementById('statAll').textContent = allWithdrawals.length;
+      document.getElementById('statPending').textContent = allWithdrawals.filter(d => d.status === 'pending').length;
+      document.getElementById('statApproved').textContent = allWithdrawals.filter(d => d.status === 'approved').length;
+      document.getElementById('statRejected').textContent = allWithdrawals.filter(d => d.status === 'rejected').length;
+      document.getElementById('statPaid').textContent = allWithdrawals.filter(d => d.status === 'paid').length;
+    }
+
+    function renderTable(filter) {
+      const tbody = document.getElementById('withdrawalsBody');
+      let filtered = filter === 'all' ? allWithdrawals : allWithdrawals.filter(d => d.status === filter);
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:#888;">No withdrawals found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(d => `
+        <tr>
+          <td><strong>${d.username}</strong></td>
+          <td class="amount-cell">${d.amount}</td>
+          <td>${d.method}</td>
+          <td><span class="status-badge ${d.status}">${d.status}</span></td>
+          <td>${formatDate(d.requestedAt)}</td>
+          <td>
+            <button class="action-btn view" onclick="viewWithdrawal('${d.id}')">👁 View</button>
+            ${d.status === 'pending' ? `
+              <button class="action-btn approve" onclick="approveWithdrawal('${d.id}')">✅ Approve</button>
+              <button class="action-btn reject" onclick="rejectWithdrawal('${d.id}')">❌ Reject</button>
+            ` : ''}
+            ${d.status === 'approved' ? `
+              <button class="action-btn paid" onclick="markPaid('${d.id}')">💵 Mark Paid</button>
+            ` : ''}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    window.filterWithdrawals = function (filter, btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderTable(filter);
+    };
+
+    /* ── View Modal ── */
+    window.viewWithdrawal = function (wId) {
+      const d = allWithdrawals.find(x => x.id === wId);
+      if (!d) return;
+      currentWithdrawalId = d.id;
+
+      document.getElementById('vUser').textContent = d.username;
+      document.getElementById('vEmail').textContent = d.email;
+      document.getElementById('vAmount').textContent = d.amount;
+      document.getElementById('vMethod').textContent = d.method;
+      document.getElementById('vStatus').textContent = d.status.toUpperCase();
+      document.getElementById('vDate').textContent = formatDate(d.requestedAt);
+
+      const statusSpan = document.getElementById('vStatus');
+      statusSpan.style.color = d.status === 'paid' ? '#1565c0' : d.status === 'approved' ? '#2e7d32' : d.status === 'rejected' ? '#c62828' : '#e65100';
+
+      if (d.processedAt) {
+        document.getElementById('processedRow').style.display = 'flex';
+        document.getElementById('vProcessed').textContent = formatDate(d.processedAt);
+      } else {
+        document.getElementById('processedRow').style.display = 'none';
+      }
+
+      if (d.processedBy) {
+        document.getElementById('processedByRow').style.display = 'flex';
+        document.getElementById('vProcessedBy').textContent = d.processedBy;
+      } else {
+        document.getElementById('processedByRow').style.display = 'none';
+      }
+
+      document.getElementById('modalApproveBtn').style.display = d.status === 'pending' ? 'inline-block' : 'none';
+      document.getElementById('modalPaidBtn').style.display = d.status === 'approved' ? 'inline-block' : 'none';
+      document.getElementById('modalRejectBtn').style.display = d.status === 'pending' ? 'inline-block' : 'none';
+
+      document.getElementById('viewModal').classList.add('open');
+    };
+
+    window.closeViewModal = function () {
+      document.getElementById('viewModal').classList.remove('open');
+      currentWithdrawalId = null;
+    };
+
+    /* ── Approve ── */
+    window.approveWithdrawal = async function (wId) {
+      if (!confirm('Approve this withdrawal? (Funds already deducted from wallet)')) return;
+      await processAction(wId, 'approved');
+    };
+
+    window.approveFromModal = async function () {
+      if (!confirm('Approve this withdrawal?')) return;
+      await processAction(currentWithdrawalId, 'approved');
+      closeViewModal();
+    };
+
+    /* ── Mark Paid ── */
+    window.markPaid = async function (wId) {
+      if (!confirm('Mark this withdrawal as PAID? This confirms funds have been sent.')) return;
+      await processAction(wId, 'paid');
+    };
+
+    window.markPaidFromModal = async function () {
+      if (!confirm('Mark this withdrawal as PAID?')) return;
+      await processAction(currentWithdrawalId, 'paid');
+      closeViewModal();
+    };
+
+    /* ── Reject ── */
+    window.rejectWithdrawal = async function (wId) {
+      if (!confirm('Reject this withdrawal? Amount will be refunded to user wallet.')) return;
+      await processRejection(wId);
+    };
+
+    window.rejectFromModal = async function () {
+      if (!confirm('Reject this withdrawal? Amount will be refunded.')) return;
+      await processRejection(currentWithdrawalId);
+      closeViewModal();
+    };
+
+    async function processAction(wId, newStatus) {
+      try {
+        await updateDoc(doc(db, 'withdrawals', wId), {
+          status: newStatus,
+          processedAt: serverTimestamp(),
+          processedBy: admin.username
+        });
+        showToast(`Withdrawal ${newStatus}!`, 'success');
+        loadWithdrawals();
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to process withdrawal.', 'error');
+      }
+    }
+
+    async function processRejection(wId) {
+      const d = allWithdrawals.find(x => x.id === wId);
+      if (!d) return;
+
+      try {
+        // Update withdrawal status
+        await updateDoc(doc(db, 'withdrawals', wId), {
+          status: 'rejected',
+          processedAt: serverTimestamp(),
+          processedBy: admin.username
+        });
+
+        // Refund user wallet if uid exists
+        if (d.uid && d.amountRaw) {
+          const userRef = doc(db, 'users', d.uid);
+          await updateDoc(userRef, { wallet: increment(d.amountRaw) });
+        }
+
+        showToast('Withdrawal rejected & amount refunded!', 'success');
+        loadWithdrawals();
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to reject withdrawal.', 'error');
+      }
+    }
+
+    window.logout = function () {
+      sessionStorage.removeItem('ishareAdmin');
+      localStorage.removeItem('ishareAdmin');
+    };
+
+    document.getElementById('viewModal').addEventListener('click', function(e) {
+      if (e.target === this) closeViewModal();
+    });
+
+    loadWithdrawals();
+  </script>
+
+  <script>
+    function openSidebar() {
+      document.getElementById('sidebar').classList.add('open');
+      document.getElementById('overlay').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('overlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  </script>
+</body>
+</html>
