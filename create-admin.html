@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Admin</title>
+  <style>
+    body { font-family: Arial; padding: 30px; max-width: 400px; margin: 50px auto; }
+    input { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 5px; }
+    button { width: 100%; padding: 12px; background: #1a2a6c; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+    button:hover { background: #15235a; }
+    .success { color: green; margin-top: 10px; }
+    .error { color: red; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h2>🔐 Create Admin Account</h2>
+  <p style="color:#888;font-size:14px;">Use this to create your first admin login</p>
+  
+  <input type="text" id="username" placeholder="Admin Username">
+  <input type="password" id="password" placeholder="Admin Password">
+  <input type="email" id="email" placeholder="Admin Email (optional)">
+  <select id="role" style="width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-radius:5px;">
+    <option value="super_admin">Super Admin</option>
+    <option value="admin">Admin</option>
+    <option value="moderator">Moderator</option>
+  </select>
+  <button onclick="createAdmin()">Create Admin</button>
+  <div id="message"></div>
+
+  <p style="color:#c62828; margin-top:20px; font-size:13px;">⚠️ Delete this file after creating the admin!</p>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBTkls-WbffHErGeX9bMYPpV5pqbCe14gY",
+      authDomain: "datacash-104dd.firebaseapp.com",
+      projectId: "datacash-104dd",
+      storageBucket: "datacash-104dd.firebasestorage.app",
+      messagingSenderId: "101692098149",
+      appId: "1:101692098149:web:55ccc9f1f105647488a88c"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+
+    window.createAdmin = async function () {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const email    = document.getElementById('email').value.trim();
+      const role     = document.getElementById('role').value;
+      const msg      = document.getElementById('message');
+
+      if (!username || !password) {
+        msg.innerHTML = '<p class="error">Username and password are required.</p>';
+        return;
+      }
+
+      try {
+        await addDoc(collection(db, 'admins'), {
+          username: username,
+          password: password,
+          email: email || '',
+          role: role,
+          createdAt: serverTimestamp(),
+          lastLogin: null
+        });
+
+        msg.innerHTML = `<p class="success">✅ Admin created!<br>Username: <b>${username}</b><br>Password: <b>${password}</b><br>Role: <b>${role}</b><br><br>Go to <a href="admin-login.html">Admin Login</a></p>`;
+        
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+        document.getElementById('email').value = '';
+
+      } catch (err) {
+        msg.innerHTML = `<p class="error">❌ Error: ${err.message}</p>`;
+      }
+    };
+  </script>
+</body>
+</html>
