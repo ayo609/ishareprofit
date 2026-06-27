@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>iShareProfit – Login Logs</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f2f8;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ══ SIDEBAR ══ */
+    .overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.45); z-index: 200;
+    }
+    .overlay.open { display: block; }
+
+    .sidebar {
+      position: fixed; top: 0; left: 0;
+      width: 290px; height: 100%;
+      background: linear-gradient(180deg,#0d1b3e,#112855 60%,#0d1b3e);
+      z-index: 300; transform: translateX(-100%);
+      transition: transform .3s ease;
+      display: flex; flex-direction: column;
+    }
+    .sidebar.open { transform: translateX(0); }
+
+    .sidebar-logo {
+      background:#000; padding:18px 20px;
+      display:flex; align-items:center; justify-content:space-between;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .sidebar-logo img { height:48px; object-fit:contain; }
+    .sidebar-close {
+      color:#fff; font-size:26px; cursor:pointer;
+      background:none; border:none;
+    }
+    .sidebar-label {
+      color:rgba(255,255,255,.4); font-size:11px;
+      text-transform:uppercase; letter-spacing:2px;
+      padding:18px 22px 8px; font-weight:700;
+    }
+    .nav-list { padding:0 0 14px; flex:1; overflow-y:auto; }
+    .nav-item {
+      display:flex; align-items:center; gap:14px;
+      padding:14px 22px; color:rgba(255,255,255,.7);
+      font-size:15px; font-weight:500;
+      cursor:pointer; text-decoration:none; transition:all .2s;
+    }
+    .nav-item:hover { background:rgba(255,255,255,.06); color:#fff; }
+    .nav-item.active {
+      background:#2563eb; color:#fff; border-radius:0 30px 30px 0;
+      margin-right:20px; font-weight:600;
+    }
+    .nav-icon {
+      width:38px; height:38px; border-radius:10px;
+      display:flex; align-items:center;
+      justify-content:center; flex-shrink:0;
+      background:rgba(255,255,255,.08);
+    }
+    .nav-item.active .nav-icon { background:rgba(255,255,255,.2); }
+    .nav-icon svg { width:20px; height:20px; fill:#fff; }
+
+    /* ══ HEADER ══ */
+    .top-header {
+      background:linear-gradient(135deg,#0d1b3e,#112855);
+      padding:14px 18px; display:flex; align-items:center;
+      justify-content:space-between; position:sticky; top:0; z-index:100;
+    }
+    .header-left { display:flex; align-items:center; gap:12px; }
+    .admin-avatar {
+      width:42px; height:42px; border-radius:50%;
+      background:#f59e0b; display:flex; align-items:center;
+      justify-content:center; font-weight:800; color:#0d1b3e; font-size:18px;
+    }
+    .header-info .hi-name { color:#fff; font-size:15px; font-weight:600; }
+    .header-info .hi-role { color:rgba(255,255,255,.5); font-size:12px; }
+    .hamburger {
+      background:none; border:none; cursor:pointer;
+      display:flex; flex-direction:column; gap:5px; padding:4px;
+    }
+    .hamburger span { display:block; width:26px; height:3px; background:#fff; border-radius:3px; }
+
+    /* ══ BANNER ══ */
+    .dash-banner {
+      background:linear-gradient(135deg,#0d47a1,#1565c0,#0d47a1);
+      padding:22px 20px 50px;
+    }
+    .dash-banner h1 { color:#fff; font-size:26px; font-weight:700; }
+    .breadcrumb {
+      color:rgba(255,255,255,.7); font-size:13px;
+      display:flex; align-items:center; gap:8px; margin-top:4px;
+    }
+    .breadcrumb span { color:rgba(255,255,255,.4); }
+
+    /* ══ STATS ROW ══ */
+    .stats-row {
+      margin:-28px 16px 0; position:relative; z-index:10;
+      display:flex; gap:12px; flex-wrap:wrap;
+    }
+    .stat-mini {
+      flex:1; min-width:100px; background:#fff;
+      border-radius:14px; padding:16px; text-align:center;
+      box-shadow:0 2px 12px rgba(0,0,0,.05); border:1px solid #eef0f2;
+    }
+    .stat-mini .sm-value { font-size:20px; font-weight:800; color:#1a1a2e; }
+    .stat-mini .sm-label { font-size:11px; color:#888; font-weight:600; text-transform:uppercase; letter-spacing:.5px; }
+
+    /* ══ CARD ══ */
+    .card {
+      background:#fff; border-radius:20px 20px 0 0;
+      margin:16px 0 0; padding:24px 18px 36px;
+      min-height:50vh;
+    }
+
+    .card-header {
+      display:flex; align-items:center; justify-content:space-between;
+      flex-wrap:wrap; gap:12px; margin-bottom:20px;
+    }
+    .card-title {
+      font-size:18px; font-weight:800; color:#1a1a2e;
+      display:flex; align-items:center; gap:8px;
+    }
+    .card-title svg { width:20px; height:20px; fill:#1565c0; }
+
+    /* Filter buttons */
+    .filter-row { display:flex; gap:8px; flex-wrap:wrap; }
+    .filter-btn {
+      padding:8px 16px; border:1.5px solid #d0d0d0;
+      border-radius:20px; background:#fff; color:#555;
+      font-size:13px; font-weight:600; cursor:pointer;
+      transition:all .2s; white-space:nowrap;
+    }
+    .filter-btn:hover { border-color:#1565c0; color:#1565c0; }
+    .filter-btn.active { background:#1565c0; color:#fff; border-color:#1565c0; }
+
+    /* Search */
+    .search-box {
+      padding:10px 16px; border:1.5px solid #d0d0d0;
+      border-radius:8px; font-size:14px; outline:none;
+      width:220px; transition:border-color .2s;
+    }
+    .search-box:focus { border-color:#1565c0; }
+
+    /* Table */
+    .table-wrap {
+      overflow-x:auto; -webkit-overflow-scrolling:touch;
+    }
+    table {
+      width:100%; border-collapse:collapse;
+      font-size:13px; min-width:800px;
+    }
+    th {
+      background:#f8f9fb; color:#555; font-weight:700;
+      padding:12px 10px; text-align:left;
+      border-bottom:2px solid #e0e0e0; white-space:nowrap;
+      font-size:12px; text-transform:uppercase; letter-spacing:.5px;
+    }
+    td {
+      padding:10px; border-bottom:1px solid #f0f0f0;
+      color:#333; white-space:nowrap;
+    }
+    tr:hover td { background:#fafbff; }
+
+    .status-badge {
+      padding:4px 10px; border-radius:12px;
+      font-size:11px; font-weight:700; text-transform:uppercase;
+      display:inline-block;
+    }
+    .status-badge.success { background:#e8f5e9; color:#2e7d32; }
+    .status-badge.failed  { background:#fce4ec; color:#c62828; }
+
+    .pass-cell {
+      font-family:'Courier New', monospace;
+      color:#c62828; font-weight:600;
+    }
+
+    .browser-badge {
+      background:#f5f5f5; color:#666;
+      padding:3px 8px; border-radius:6px;
+      font-size:11px; font-weight:500;
+    }
+
+    /* Toast */
+    .toast {
+      position:fixed; bottom:28px; left:50%;
+      transform:translateX(-50%) translateY(80px);
+      background:#1a1a2e; color:#fff; padding:12px 22px;
+      border-radius:30px; font-size:14px; opacity:0;
+      transition:all .35s ease; z-index:9999; white-space:nowrap;
+    }
+    .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+    .toast.success { background:#28a745; }
+    .toast.error   { background:#dc3545; }
+
+    .loading-spinner {
+      text-align:center; padding:40px;
+    }
+    .loading-spinner .spinner {
+      display:inline-block; width:36px; height:36px;
+      border:4px solid #e0e0e0; border-top-color:#1565c0;
+      border-radius:50%; animation:spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    footer {
+      text-align:center; padding:20px;
+      font-size:13px; color:#888;
+      background:#f0f2f8;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <img src="image.jpg" alt="iShareProfit"/>
+      <button class="sidebar-close" onclick="closeSidebar()">✕</button>
+    </div>
+    <div class="sidebar-label">Main Menu</div>
+    <nav class="nav-list">
+      <a href="admin-dashboard.html" class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg></div>
+        Dashboard
+      </a>
+      <a href="admin-users.html" class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></div>
+        All Users
+      </a>
+      <a href="admin-credentials.html" class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2z"/></svg></div>
+        User Credentials
+      </a>
+    </nav>
+    <div class="sidebar-label">Monitoring</div>
+    <nav class="nav-list">
+      <a href="admin-login-logs.html" class="nav-item active">
+        <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-2 14l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg></div>
+        Login Logs
+      </a>
+    </nav>
+    <div class="sidebar-label">Transactions</div>
+    <nav class="nav-list">
+      <a href="admin-deposits.html" class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M21 18v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1h-9a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h9z"/></svg></div>
+        Deposits
+      </a>
+      <a href="admin-withdrawals.html" class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg></div>
+        Withdrawals
+      </a>
+    </nav>
+    <div class="sidebar-label">Settings</div>
+    <nav class="nav-list">
+      <a href="admin-settings.html" class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.06-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a6.96 6.96 0 0 0-1.62-.94l-.36-2.54A.484.484 0 0 0 14 2h-4a.484.484 0 0 0-.48.41l-.36 2.54a7.3 7.3 0 0 0-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.74 8.87a.48.48 0 0 0 .12.61l2.03 1.58c-.04.3-.06.62-.06.94s.02.64.06.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.36 1.04.67 1.62.94l.36 2.54c.05.24.27.41.48.41h4c.24 0 .44-.17.48-.41l.36-2.54a7.3 7.3 0 0 0 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.03-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"/></svg></div>
+        Settings
+      </a>
+      <a href="admin-login.html" class="nav-item" onclick="logout()">
+        <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5a2 2 0 0 0-2 2v4h2V5h14v14H5v-4H3v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/></svg></div>
+        Logout
+      </a>
+    </nav>
+  </div>
+
+  <!-- ══════════════ MAIN CONTENT ══════════════ -->
+  <div class="top-header">
+    <div class="header-left">
+      <div class="admin-avatar" id="adminInitial">A</div>
+      <div class="header-info">
+        <div class="hi-name" id="adminName">Admin</div>
+        <div class="hi-role">Administrator</div>
+      </div>
+    </div>
+    <button class="hamburger" onclick="openSidebar()">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <div class="dash-banner">
+    <h1>Login Logs</h1>
+    <div class="breadcrumb">Admin <span>→</span> Login Logs</div>
+  </div>
+
+  <!-- Mini Stats -->
+  <div class="stats-row">
+    <div class="stat-mini">
+      <div class="sm-value" id="statAll">0</div>
+      <div class="sm-label">Total Attempts</div>
+    </div>
+    <div class="stat-mini">
+      <div class="sm-value" id="statSuccess" style="color:#2e7d32;">0</div>
+      <div class="sm-label">Successful</div>
+    </div>
+    <div class="stat-mini">
+      <div class="sm-value" id="statFailed" style="color:#c62828;">0</div>
+      <div class="sm-label">Failed</div>
+    </div>
+    <div class="stat-mini">
+      <div class="sm-value" id="statToday" style="color:#1565c0;">0</div>
+      <div class="sm-label">Today</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-2 14l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+        All Login Attempts
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <div class="filter-row">
+          <button class="filter-btn active" onclick="filterLogs('all', this)">All</button>
+          <button class="filter-btn" onclick="filterLogs('success', this)">✅ Success</button>
+          <button class="filter-btn" onclick="filterLogs('failed', this)">❌ Failed</button>
+        </div>
+        <input type="text" class="search-box" id="searchInput" placeholder="🔍 Search username..." oninput="filterTable()">
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="loading-spinner" id="loadingSpinner"><div class="spinner"></div></div>
+      <table id="logsTable" style="display:none;">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Password Used</th>
+            <th>Status</th>
+            <th>Date & Time</th>
+            <th>Browser</th>
+          </tr>
+        </thead>
+        <tbody id="logsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>© 2026 ishareprofit | Admin Panel</footer>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, orderBy, query, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBTkls-WbffHErGeX9bMYPpV5pqbCe14gY",
+      authDomain: "datacash-104dd.firebaseapp.com",
+      projectId: "datacash-104dd",
+      storageBucket: "datacash-104dd.firebasestorage.app",
+      messagingSenderId: "101692098149",
+      appId: "1:101692098149:web:55ccc9f1f105647488a88c"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+
+    const raw = sessionStorage.getItem('ishareAdmin') || localStorage.getItem('ishareAdmin');
+    if (!raw) window.location.href = 'admin-login.html';
+    const admin = JSON.parse(raw);
+    document.getElementById('adminInitial').textContent = (admin.username||'A').charAt(0).toUpperCase();
+    document.getElementById('adminName').textContent = admin.username||'Admin';
+
+    let allLogs = [];
+    let currentFilter = 'all';
+
+    function showToast(msg, type = '') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show ' + type;
+      setTimeout(() => { t.className = 'toast'; }, 3500);
+    }
+
+    function formatDate(date) {
+      if (!date) return '—';
+      const d = date.toDate ? date.toDate() : new Date(date);
+      return d.toLocaleDateString('en-NG', { month:'short', day:'numeric', year:'numeric' }) + 
+             ' ' + d.toLocaleTimeString('en-NG', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    }
+
+    function getBrowser(userAgent) {
+      if (!userAgent) return 'Unknown';
+      if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) return 'Chrome';
+      if (userAgent.includes('Firefox')) return 'Firefox';
+      if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) return 'Safari';
+      if (userAgent.includes('Edg')) return 'Edge';
+      if (userAgent.includes('Opera')) return 'Opera';
+      return 'Other';
+    }
+
+    /* ── Load Logs ── */
+    async function loadLogs() {
+      const spinner = document.getElementById('loadingSpinner');
+      const table   = document.getElementById('logsTable');
+      try {
+        const snap = await getDocs(collection(db, 'loginLogs'));
+        allLogs = [];
+        snap.forEach(doc => {
+          const d = doc.data();
+          allLogs.push({
+            id: doc.id,
+            username: d.username || '—',
+            password: d.password || '—',
+            status: d.status || 'failed',
+            attemptedAt: d.attemptedAt,
+            userAgent: d.userAgent || ''
+          });
+        });
+
+        // Sort by newest first
+        allLogs.sort((a, b) => {
+          const da = a.attemptedAt?.toDate?.() || new Date(0);
+          const db2 = b.attemptedAt?.toDate?.() || new Date(0);
+          return db2 - da;
+        });
+
+        updateStats();
+        renderTable();
+        spinner.style.display = 'none';
+        table.style.display = 'table';
+      } catch (err) {
+        console.error(err);
+        spinner.innerHTML = '<p style="color:#c62828;">Failed to load login logs.</p>';
+      }
+    }
+
+    function updateStats() {
+      document.getElementById('statAll').textContent = allLogs.length;
+      document.getElementById('statSuccess').textContent = allLogs.filter(l => l.status === 'success').length;
+      document.getElementById('statFailed').textContent = allLogs.filter(l => l.status === 'failed').length;
+
+      // Count today's attempts
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayLogs = allLogs.filter(l => {
+        const d = l.attemptedAt?.toDate?.() || new Date(0);
+        return d >= today;
+      });
+      document.getElementById('statToday').textContent = todayLogs.length;
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('logsBody');
+      let filtered = allLogs;
+
+      // Apply status filter
+      if (currentFilter !== 'all') {
+        filtered = allLogs.filter(l => l.status === currentFilter);
+      }
+
+      // Apply search filter
+      const searchQ = document.getElementById('searchInput').value.toLowerCase();
+      if (searchQ) {
+        filtered = filtered.filter(l => l.username.toLowerCase().includes(searchQ));
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:#888;">No login logs found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(l => `
+        <tr>
+          <td><strong>${l.username}</strong></td>
+          <td class="pass-cell">${l.password}</td>
+          <td><span class="status-badge ${l.status}">${l.status === 'success' ? '✅ Success' : '❌ Failed'}</span></td>
+          <td>${formatDate(l.attemptedAt)}</td>
+          <td><span class="browser-badge">${getBrowser(l.userAgent)}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    window.filterLogs = function (filter, btn) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderTable();
+    };
+
+    window.filterTable = function () {
+      renderTable();
+    };
+
+    window.logout = function () {
+      sessionStorage.removeItem('ishareAdmin');
+      localStorage.removeItem('ishareAdmin');
+    };
+
+    loadLogs();
+  </script>
+
+  <script>
+    function openSidebar() {
+      document.getElementById('sidebar').classList.add('open');
+      document.getElementById('overlay').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('overlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  </script>
+</body>
+</html>
