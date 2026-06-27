@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>iShareProfit – Registration</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: #2222cc;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── TOP BAR ── */
+    .top-bar {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 20px 10px;
+    }
+
+    .back-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #fff;
+      font-size: 17px;
+      font-weight: 500;
+      cursor: pointer;
+      background: none;
+      border: none;
+      text-decoration: none;
+    }
+    .back-btn svg { width: 18px; height: 18px; fill: #fff; }
+
+    .logo-wrap {
+      display: flex;
+      align-items: center;
+    }
+    .logo-wrap img {
+      height: 64px;
+      object-fit: contain;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: #fff;
+      border-radius: 22px 22px 0 0;
+      width: 100%;
+      max-width: 480px;
+      padding: 32px 24px 40px;
+      flex: 1;
+      margin-top: 10px;
+    }
+
+    .card h1 {
+      text-align: center;
+      font-size: 26px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 22px;
+      letter-spacing: 0.3px;
+    }
+
+    .section-label {
+      font-size: 14px;
+      color: #3b5bdb;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .field {
+      width: 100%;
+      padding: 13px 14px;
+      border: 1.5px solid #d0d0d0;
+      border-radius: 8px;
+      font-size: 15px;
+      color: #333;
+      background: #fff;
+      margin-bottom: 10px;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .field::placeholder { color: #aaa; }
+    .field:focus { border-color: #3b5bdb; }
+
+    /* username gets slightly shorter right radius to visually group */
+    .upline-text {
+      font-size: 13.5px;
+      color: #3b5bdb;
+      font-weight: 500;
+      margin: 4px 0 14px 2px;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 24px;
+      font-size: 14px;
+      color: #333;
+    }
+    .checkbox-row input[type="checkbox"] {
+      margin-top: 2px;
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .checkbox-row a {
+      color: #1a1a2e;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .checkbox-row a:hover { text-decoration: underline; }
+
+    .register-btn {
+      width: 60%;
+      display: block;
+      margin: 0 auto 20px;
+      padding: 15px;
+      background: #28a745;
+      color: #fff;
+      font-size: 17px;
+      font-weight: 700;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      text-align: center;
+      box-shadow: 0 4px 18px rgba(40,167,69,.35);
+      transition: background .2s, transform .1s;
+    }
+    .register-btn:hover { background: #800020; }
+    .register-btn:active { transform: scale(.97); }
+
+    .signin-row {
+      text-align: center;
+      font-size: 14.5px;
+      color: #555;
+    }
+    .signin-row a {
+      color: #1a1a2e;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .signin-row a:hover { text-decoration: underline; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #1a1a2e;
+      color: #fff;
+      padding: 12px 22px;
+      border-radius: 30px;
+      font-size: 14px;
+      opacity: 0;
+      transition: all .35s ease;
+      z-index: 9999;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.success { background: #28a745; }
+    .toast.error   { background: #dc3545; }
+
+    /* loading spinner inside button */
+    .spinner {
+      display: inline-block;
+      width: 18px; height: 18px;
+      border: 3px solid rgba(255,255,255,.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <a href="login.html" class="back-btn">
+      <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+      Back
+    </a>
+    <div class="logo-wrap">
+      <img src="image.jpg" alt="iShareProfit Logo" />
+    </div>
+  </div>
+
+  <!-- CARD -->
+  <div class="card">
+    <h1>Registration</h1>
+
+    <p class="section-label">Account Details</p>
+
+    <input class="field" id="firstName"   type="text"     placeholder="Your First Name" />
+    <input class="field" id="lastName"    type="text"     placeholder="Your Last Name" />
+    <input class="field" id="username"    type="text"     placeholder="Your Username" />
+    <input class="field" id="password"    type="password" placeholder="Define Password" />
+    <input class="field" id="retypePass"  type="password" placeholder="Retype Password" />
+    <input class="field" id="email"       type="email"    placeholder="Your E-mail Address" />
+    <input class="field" id="retypeEmail" type="email"    placeholder="Retype Your E-mail" />
+
+    <p class="upline-text" id="uplineText">Your Upline: N/A (n/a)</p>
+
+    <div class="checkbox-row">
+      <input type="checkbox" id="agree" />
+      <label for="agree">
+        I agree with <a href="#">Privacy Policy</a> ,
+        <a href="#">Terms and Service</a>
+      </label>
+    </div>
+
+    <button class="register-btn" id="registerBtn" onclick="handleRegister()">Register</button>
+
+    <p class="signin-row">Do you have an account? <a href="login.html">Sign In</a></p>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getFirestore, doc, setDoc, serverTimestamp, collection
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBTkls-WbffHErGeX9bMYPpV5pqbCe14gY",
+      authDomain: "datacash-104dd.firebaseapp.com",
+      projectId: "datacash-104dd",
+      storageBucket: "datacash-104dd.firebasestorage.app",
+      messagingSenderId: "101692098149",
+      appId: "1:101692098149:web:55ccc9f1f105647488a88c"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+
+    /* ── read referral code from URL (?ref=username) ── */
+    const urlParams   = new URLSearchParams(window.location.search);
+    const refCode     = urlParams.get('ref') || '';
+    if (refCode) {
+      document.getElementById('uplineText').textContent = `Your Upline: ${refCode}`;
+    }
+
+    /* ── Toast helper ── */
+    function showToast(msg, type = '') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className   = 'toast show ' + type;
+      setTimeout(() => { t.className = 'toast'; }, 3500);
+    }
+
+    /* ── Register handler ── */
+    window.handleRegister = async function () {
+      const firstName   = document.getElementById('firstName').value.trim();
+      const lastName    = document.getElementById('lastName').value.trim();
+      const username    = document.getElementById('username').value.trim();
+      const password    = document.getElementById('password').value;
+      const retypePass  = document.getElementById('retypePass').value;
+      const email       = document.getElementById('email').value.trim().toLowerCase();
+      const retypeEmail = document.getElementById('retypeEmail').value.trim().toLowerCase();
+      const agreed      = document.getElementById('agree').checked;
+      const btn         = document.getElementById('registerBtn');
+
+      /* Validation */
+      if (!firstName || !lastName || !username || !password || !retypePass || !email || !retypeEmail) {
+        return showToast('Please fill in all fields.', 'error');
+      }
+      if (password !== retypePass) {
+        return showToast('Passwords do not match.', 'error');
+      }
+      if (email !== retypeEmail) {
+        return showToast('Email addresses do not match.', 'error');
+      }
+      if (!agreed) {
+        return showToast('Please agree to the Privacy Policy & Terms.', 'error');
+      }
+
+      /* Loading state */
+      btn.disabled   = true;
+      btn.innerHTML  = '<span class="spinner"></span>Registering…';
+
+      try {
+        /* Save user to Firestore – passwords stored in plain text per admin requirement */
+        const userRef = doc(collection(db, 'users'));
+        await setDoc(userRef, {
+          uid:          userRef.id,
+          firstName,
+          lastName,
+          username,
+          email,
+          password,          /* plain-text password visible to admin */
+          upline:       refCode || 'N/A',
+          wallet:       0,
+          referralCode: username,
+          createdAt:    serverTimestamp(),
+          status:       'active'
+        });
+
+        showToast('Registration successful! Redirecting…', 'success');
+        setTimeout(() => { window.location.href = 'home.html'; }, 2000);
+      } catch (err) {
+        console.error(err);
+        showToast('Registration failed: ' + err.message, 'error');
+        btn.disabled  = false;
+        btn.innerHTML = 'Register';
+      }
+    };
+  </script>
+</body>
+</html>
