@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>iShareProfit – Admin Settings</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f2f8;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ══ SIDEBAR ══ */
+    .overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.45); z-index: 200;
+    }
+    .overlay.open { display: block; }
+
+    .sidebar {
+      position: fixed; top: 0; left: 0;
+      width: 290px; height: 100%;
+      background: linear-gradient(180deg,#0d1b3e,#112855 60%,#0d1b3e);
+      z-index: 300; transform: translateX(-100%);
+      transition: transform .3s ease;
+      display: flex; flex-direction: column;
+    }
+    .sidebar.open { transform: translateX(0); }
+
+    .sidebar-logo {
+      background:#000; padding:18px 20px;
+      display:flex; align-items:center; justify-content:space-between;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .sidebar-logo img { height:48px; object-fit:contain; }
+    .sidebar-close {
+      color:#fff; font-size:26px; cursor:pointer;
+      background:none; border:none;
+    }
+    .sidebar-label {
+      color:rgba(255,255,255,.4); font-size:11px;
+      text-transform:uppercase; letter-spacing:2px;
+      padding:18px 22px 8px; font-weight:700;
+    }
+    .nav-list { padding:0 0 14px; flex:1; overflow-y:auto; }
+    .nav-item {
+      display:flex; align-items:center; gap:14px;
+      padding:14px 22px; color:rgba(255,255,255,.7);
+      font-size:15px; font-weight:500;
+      cursor:pointer; text-decoration:none; transition:all .2s;
+    }
+    .nav-item:hover { background:rgba(255,255,255,.06); color:#fff; }
+    .nav-item.active {
+      background:#2563eb; color:#fff; border-radius:0 30px 30px 0;
+      margin-right:20px; font-weight:600;
+    }
+    .nav-icon {
+      width:38px; height:38px; border-radius:10px;
+      display:flex; align-items:center;
+      justify-content:center; flex-shrink:0;
+      background:rgba(255,255,255,.08);
+    }
+    .nav-item.active .nav-icon { background:rgba(255,255,255,.2); }
+    .nav-icon svg { width:20px; height:20px; fill:#fff; }
+
+    /* ══ HEADER ══ */
+    .top-header {
+      background:linear-gradient(135deg,#0d1b3e,#112855);
+      padding:14px 18px; display:flex; align-items:center;
+      justify-content:space-between; position:sticky; top:0; z-index:100;
+    }
+    .header-left { display:flex; align-items:center; gap:12px; }
+    .admin-avatar {
+      width:42px; height:42px; border-radius:50%;
+      background:#f59e0b; display:flex; align-items:center;
+      justify-content:center; font-weight:800; color:#0d1b3e; font-size:18px;
+    }
+    .header-info .hi-name { color:#fff; font-size:15px; font-weight:600; }
+    .header-info .hi-role { color:rgba(255,255,255,.5); font-size:12px; }
+    .hamburger {
+      background:none; border:none; cursor:pointer;
+      display:flex; flex-direction:column; gap:5px; padding:4px;
+    }
+    .hamburger span { display:block; width:26px; height:3px; background:#fff; border-radius:3px; }
+
+    /* ══ BANNER ══ */
+    .dash-banner {
+      background:linear-gradient(135deg,#37474f,#455a64,#37474f);
+      padding:22px 20px 50px;
+    }
+    .dash-banner h1 { color:#fff; font-size:26px; font-weight:700; }
+    .breadcrumb {
+      color:rgba(255,255,255,.7); font-size:13px;
+      display:flex; align-items:center; gap:8px; margin-top:4px;
+    }
+    .breadcrumb span { color:rgba(255,255,255,.4); }
+
+    /* ══ CARD ══ */
+    .card {
+      background:#fff; border-radius:20px 20px 0 0;
+      margin:-28px 0 0; padding:24px 20px 36px;
+      min-height:50vh;
+    }
+
+    /* Section Header */
+    .section-header {
+      background:#f1f4f9; padding:14px 18px;
+      border-radius:8px; color:#1a1a2e;
+      font-weight:700; font-size:15px;
+      margin-bottom:20px; display:flex; align-items:center;
+      gap:10px;
+    }
+    .section-header svg { width:20px; height:20px; fill:#455a64; }
+
+    /* Form Groups */
+    .form-group { margin-bottom:18px; }
+    .form-group label {
+      display:block; font-size:14px; color:#555;
+      font-weight:600; margin-bottom:7px;
+    }
+    .form-control {
+      width:100%; padding:14px 16px;
+      border:1.5px solid #d0d0d0;
+      border-radius:8px; font-size:15px;
+      color:#333; outline:none;
+      background:#fafafa; transition:border-color .2s, background .2s;
+    }
+    .form-control:focus { border-color:#455a64; background:#fff; }
+    .form-control::placeholder { color:#aaa; }
+    textarea.form-control {
+      resize:vertical; min-height:90px;
+    }
+
+    /* Save Button */
+    .btn-save {
+      width:100%; background:#455a64; color:#fff;
+      padding:15px; border:none;
+      border-radius:8px; font-size:16px;
+      font-weight:700; cursor:pointer;
+      transition:background .2s, transform .1s;
+      box-shadow:0 4px 18px rgba(69,90,100,.25);
+      margin-top:6px;
+    }
+    .btn-save:hover { background:#37474f; }
+    .btn-save:active { transform:scale(.97); }
+    .btn-save:disabled { opacity:.6; cursor:not-allowed; }
+
+    .btn-danger {
+      width:100%; background:#c62828; color:#fff;
+      padding:15px; border:none;
+      border-radius:8px; font-size:16px;
+      font-weight:700; cursor:pointer;
+      transition:background .2s, transform .1s;
+      box-shadow:0 4px 18px rgba(198,40,40,.25);
+      margin-top:6px;
+    }
+    .btn-danger:hover { background:#b71c1c; }
+    .btn-danger:active { transform:scale(.97); }
+    .btn-danger:disabled { opacity:.6; cursor:not-allowed; }
+
+    /* Note box */
+    .note-box {
+      background:#e8f5e9; border:1px solid #c8e6c9;
+      color:#2e7d32; padding:14px 16px; border-radius:10px;
+      font-size:13px; margin-bottom:20px; line-height:1.5;
+      display:flex; align-items:flex-start; gap:10px;
+    }
+    .note-box svg { width:20px; height:20px; flex-shrink:0; margin-top:1px; fill:#2e7d32; }
+
+    .note-box.warning {
+      background:#fff3e0; border-color:#ffe0b2; color:#e65100;
+    }
+    .note-box.warning svg { fill:#e65100; }
+
+    /* ══ TOAST ══ */
+    .toast {
+      position:fixed; bottom:28px; left:50%;
+      transform:translateX(-50%) translateY(80px);
+      background:#1a1a2e; color:#fff; padding:12px 22px;
+      border-radius:30px; font-size:14px; opacity:0;
+      transition:all .35s ease; z-index:9999; white-space:nowrap;
+    }
+    .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+    .toast.success { background:#28a745; }
+    .toast.error   { background:#dc3545; }
+
+    /* Spinner */
+    .spinner {
+      display:inline-block; width:18px; height:18px;
+      border:3px solid rgba(255,255,255,.4); border-top-color:#fff;
+      border-radius:50%; animation:spin .7s linear infinite;
+      vertical-align:middle; margin-right:8px;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    footer {
+      text-align:center; padding:20px;
+      font-size:13px; color:#888;
+      background:#f0f2f8;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <img src="image.jpg" alt="iShareProfit"/>
+      <button class="sidebar-close" onclick="closeSidebar()">✕</button>
+    </div>
+    <div class="sidebar-label">Main Menu</div>
+    <nav class="nav-list">
+      <a href="admin-dashboard.html" class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg></div>
+        Dashboard
+      </a>
+      <a href="admin-users.html" class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></div>
+        All Users
+      </a>
+      <a href="admin-credentials.html" class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2z"/></svg></div>
+        User Credentials
+      </a>
+    </nav>
+    <div class="sidebar-label">Transactions</div>
+    <nav class="nav-list">
+      <a href="admin-deposits.html" class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M21 18v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1h-9a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h9z"/></svg></div>
+        Deposits
+      </a>
+      <a href="admin-withdrawals.html" class="nav-item">
+        <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg></div>
+        Withdrawals
+      </a>
+    </nav>
+    <div class="sidebar-label">Settings</div>
+    <nav class="nav-list">
+      <a href="admin-settings.html" class="nav-item active">
+        <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.06-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a6.96 6.96 0 0 0-1.62-.94l-.36-2.54A.484.484 0 0 0 14 2h-4a.484.484 0 0 0-.48.41l-.36 2.54a7.3 7.3 0 0 0-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.74 8.87a.48.48 0 0 0 .12.61l2.03 1.58c-.04.3-.06.62-.06.94s.02.64.06.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.36 1.04.67 1.62.94l.36 2.54c.05.24.27.41.48.41h4c.24 0 .44-.17.48-.41l.36-2.54a7.3 7.3 0 0 0 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.03-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"/></svg></div>
+        Settings
+      </a>
+      <a href="admin-login.html" class="nav-item" onclick="logout()">
+        <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5a2 2 0 0 0-2 2v4h2V5h14v14H5v-4H3v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/></svg></div>
+        Logout
+      </a>
+    </nav>
+  </div>
+
+  <!-- ══════════════ MAIN CONTENT ══════════════ -->
+  <div class="top-header">
+    <div class="header-left">
+      <div class="admin-avatar" id="adminInitial">A</div>
+      <div class="header-info">
+        <div class="hi-name" id="adminName">Admin</div>
+        <div class="hi-role">Administrator</div>
+      </div>
+    </div>
+    <button class="hamburger" onclick="openSidebar()">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <div class="dash-banner">
+    <h1>Admin Settings</h1>
+    <div class="breadcrumb">Admin <span>→</span> Settings</div>
+  </div>
+
+  <div class="card">
+
+    <!-- ══ BANK DETAILS ══ -->
+    <div class="section-header">
+      <svg viewBox="0 0 24 24"><path d="M21 18v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1h-9a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h9z"/></svg>
+      Bank Account Details
+    </div>
+
+    <div class="note-box">
+      <svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+      <span>These bank details will be shown to users when they want to make a deposit.</span>
+    </div>
+
+    <div class="form-group">
+      <label>Account Name</label>
+      <input type="text" id="bankAcctName" class="form-control" placeholder="e.g. ISHAREPROFIT ENTERPRISE">
+    </div>
+    <div class="form-group">
+      <label>Bank Name</label>
+      <input type="text" id="bankName" class="form-control" placeholder="e.g. MONIEPOINT MFB">
+    </div>
+    <div class="form-group">
+      <label>Account Number</label>
+      <input type="text" id="bankAcctNumber" class="form-control" placeholder="e.g. 5276354531">
+    </div>
+
+    <button class="btn-save" id="saveBankBtn" onclick="saveBankDetails()">💾 Save Bank Details</button>
+
+    <!-- ══ PLATFORM SETTINGS ══ -->
+    <div class="section-header" style="margin-top:28px;">
+      <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.06-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a6.96 6.96 0 0 0-1.62-.94l-.36-2.54A.484.484 0 0 0 14 2h-4a.484.484 0 0 0-.48.41l-.36 2.54a7.3 7.3 0 0 0-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.74 8.87a.48.48 0 0 0 .12.61l2.03 1.58c-.04.3-.06.62-.06.94s.02.64.06.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.36 1.04.67 1.62.94l.36 2.54c.05.24.27.41.48.41h4c.24 0 .44-.17.48-.41l.36-2.54a7.3 7.3 0 0 0 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.03-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"/></svg>
+      Platform Configuration
+    </div>
+
+    <div class="form-group">
+      <label>Platform Name</label>
+      <input type="text" id="platformName" class="form-control" placeholder="e.g. iShareProfit">
+    </div>
+    <div class="form-group">
+      <label>Currency Symbol</label>
+      <input type="text" id="currency" class="form-control" placeholder="e.g. ₦">
+    </div>
+    <div class="form-group">
+      <label>Minimum Deposit (₦)</label>
+      <input type="number" id="minDeposit" class="form-control" placeholder="e.g. 10000" min="0">
+    </div>
+    <div class="form-group">
+      <label>Minimum Withdrawal (₦)</label>
+      <input type="number" id="minWithdrawal" class="form-control" placeholder="e.g. 1000" min="0">
+    </div>
+    <div class="form-group">
+      <label>Referral Commission (%)</label>
+      <input type="number" id="referralCommission" class="form-control" placeholder="e.g. 10" min="0" max="100">
+    </div>
+    <div class="form-group">
+      <label>Support Email</label>
+      <input type="email" id="supportEmail" class="form-control" placeholder="e.g. support@ishareprofit.com">
+    </div>
+    <div class="form-group">
+      <label>Support Phone</label>
+      <input type="text" id="supportPhone" class="form-control" placeholder="e.g. +234 800 000 0000">
+    </div>
+
+    <button class="btn-save" id="savePlatformBtn" onclick="savePlatformSettings()">💾 Save Platform Settings</button>
+
+    <!-- ══ ADMIN PASSWORD ══ -->
+    <div class="section-header" style="margin-top:28px;">
+      <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2z"/></svg>
+      Change Admin Password
+    </div>
+
+    <div class="note-box warning">
+      <svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+      <span>Update your admin login password. Keep it secure!</span>
+    </div>
+
+    <div class="form-group">
+      <label>Current Password</label>
+      <input type="password" id="adminCurrentPass" class="form-control" placeholder="Enter current password">
+    </div>
+    <div class="form-group">
+      <label>New Password</label>
+      <input type="password" id="adminNewPass" class="form-control" placeholder="Enter new password">
+    </div>
+    <div class="form-group">
+      <label>Confirm New Password</label>
+      <input type="password" id="adminConfirmPass" class="form-control" placeholder="Confirm new password">
+    </div>
+
+    <button class="btn-save" id="savePassBtn" onclick="changeAdminPassword()">🔒 Update Password</button>
+
+    <!-- ══ DANGER ZONE ══ -->
+    <div class="section-header" style="margin-top:28px; color:#c62828;">
+      <svg viewBox="0 0 24 24" style="fill:#c62828;"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+      Danger Zone
+    </div>
+
+    <button class="btn-danger" id="clearAllBtn" onclick="clearAllData()">⚠️ Clear All User Data</button>
+
+  </div>
+
+  <footer>© 2026 ishareprofit | Admin Panel</footer>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc,
+      updateDoc,
+      collection,
+      getDocs,
+      deleteDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBTkls-WbffHErGeX9bMYPpV5pqbCe14gY",
+      authDomain: "datacash-104dd.firebaseapp.com",
+      projectId: "datacash-104dd",
+      storageBucket: "datacash-104dd.firebasestorage.app",
+      messagingSenderId: "101692098149",
+      appId: "1:101692098149:web:55ccc9f1f105647488a88c"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+
+    const raw = sessionStorage.getItem('ishareAdmin') || localStorage.getItem('ishareAdmin');
+    if (!raw) window.location.href = 'admin-login.html';
+    const admin = JSON.parse(raw);
+    document.getElementById('adminInitial').textContent = (admin.username||'A').charAt(0).toUpperCase();
+    document.getElementById('adminName').textContent = admin.username||'Admin';
+
+    function showToast(msg, type = '') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show ' + type;
+      setTimeout(() => { t.className = 'toast'; }, 3500);
+    }
+
+    /* ── Load Settings ── */
+    async function loadSettings() {
+      try {
+        const docRef = doc(db, 'settings', 'platform');
+        const snap = await getDoc(docRef);
+        if (snap.exists()) {
+          const s = snap.data();
+          document.getElementById('bankAcctName').value = s.bankAcctName || '';
+          document.getElementById('bankName').value = s.bankName || '';
+          document.getElementById('bankAcctNumber').value = s.bankAcctNumber || '';
+          document.getElementById('platformName').value = s.platformName || '';
+          document.getElementById('currency').value = s.currency || '';
+          document.getElementById('minDeposit').value = s.minDeposit || '';
+          document.getElementById('minWithdrawal').value = s.minWithdrawal || '';
+          document.getElementById('referralCommission').value = s.referralCommission || '';
+          document.getElementById('supportEmail').value = s.supportEmail || '';
+          document.getElementById('supportPhone').value = s.supportPhone || '';
+        }
+      } catch (err) {
+        console.error('Load settings error:', err);
+      }
+    }
+
+    /* ── Save Bank Details ── */
+    window.saveBankDetails = async function () {
+      const btn = document.getElementById('saveBankBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Saving...';
+
+      try {
+        await setDoc(doc(db, 'settings', 'platform'), {
+          bankAcctName: document.getElementById('bankAcctName').value.trim(),
+          bankName: document.getElementById('bankName').value.trim(),
+          bankAcctNumber: document.getElementById('bankAcctNumber').value.trim(),
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+
+        showToast('Bank details saved!', 'success');
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to save.', 'error');
+      }
+      btn.disabled = false;
+      btn.innerHTML = '💾 Save Bank Details';
+    };
+
+    /* ── Save Platform Settings ── */
+    window.savePlatformSettings = async function () {
+      const btn = document.getElementById('savePlatformBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Saving...';
+
+      try {
+        await setDoc(doc(db, 'settings', 'platform'), {
+          platformName: document.getElementById('platformName').value.trim(),
+          currency: document.getElementById('currency').value.trim(),
+          minDeposit: parseFloat(document.getElementById('minDeposit').value) || 0,
+          minWithdrawal: parseFloat(document.getElementById('minWithdrawal').value) || 0,
+          referralCommission: parseFloat(document.getElementById('referralCommission').value) || 0,
+          supportEmail: document.getElementById('supportEmail').value.trim(),
+          supportPhone: document.getElementById('supportPhone').value.trim(),
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+
+        showToast('Platform settings saved!', 'success');
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to save.', 'error');
+      }
+      btn.disabled = false;
+      btn.innerHTML = '💾 Save Platform Settings';
+    };
+
+    /* ── Change Admin Password ── */
+    window.changeAdminPassword = async function () {
+      const currentPass = document.getElementById('adminCurrentPass').value;
+      const newPass = document.getElementById('adminNewPass').value;
+      const confirmPass = document.getElementById('adminConfirmPass').value;
+      const btn = document.getElementById('savePassBtn');
+
+      if (!currentPass || !newPass || !confirmPass) {
+        return showToast('Please fill all password fields.', 'error');
+      }
+      if (newPass.length < 6) {
+        return showToast('Password must be at least 6 characters.', 'error');
+      }
+      if (newPass !== confirmPass) {
+        return showToast('Passwords do not match.', 'error');
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Updating...';
+
+      try {
+        const adminRef = doc(db, 'admins', admin.uid);
+        const adminSnap = await getDoc(adminRef);
+
+        if (!adminSnap.exists()) {
+          showToast('Admin account not found.', 'error');
+          btn.disabled = false;
+          btn.innerHTML = '🔒 Update Password';
+          return;
+        }
+
+        const adminData = adminSnap.data();
+        if (adminData.password !== currentPass) {
+          showToast('Current password is incorrect.', 'error');
+          btn.disabled = false;
+          btn.innerHTML = '🔒 Update Password';
+          return;
+        }
+
+        await updateDoc(adminRef, {
+          password: newPass,
+          passwordUpdatedAt: serverTimestamp()
+        });
+
+        showToast('Admin password updated!', 'success');
+        document.getElementById('adminCurrentPass').value = '';
+        document.getElementById('adminNewPass').value = '';
+        document.getElementById('adminConfirmPass').value = '';
+
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to update password.', 'error');
+      }
+      btn.disabled = false;
+      btn.innerHTML = '🔒 Update Password';
+    };
+
+    /* ── Clear All Data (Danger!) ── */
+    window.clearAllData = async function () {
+      const confirmed = confirm('⚠️ WARNING: This will DELETE ALL users, deposits, withdrawals, and bonuses. This CANNOT be undone!\n\nType "DELETE" to confirm.');
+      if (confirmed !== true) return;
+
+      const doubleConfirm = prompt('Type DELETE to confirm:');
+      if (doubleConfirm !== 'DELETE') {
+        return showToast('Operation cancelled.', 'error');
+      }
+
+      const btn = document.getElementById('clearAllBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Deleting all data...';
+
+      try {
+        // Delete all users
+        const usersSnap = await getDocs(collection(db, 'users'));
+        for (const docSnap of usersSnap.docs) {
+          await deleteDoc(doc(db, 'users', docSnap.id));
+        }
+
+        // Delete all deposits
+        const depositsSnap = await getDocs(collection(db, 'deposits'));
+        for (const docSnap of depositsSnap.docs) {
+          await deleteDoc(doc(db, 'deposits', docSnap.id));
+        }
+
+        // Delete all withdrawals
+        const withdrawalsSnap = await getDocs(collection(db, 'withdrawals'));
+        for (const docSnap of withdrawalsSnap.docs) {
+          await deleteDoc(doc(db, 'withdrawals', docSnap.id));
+        }
+
+        // Delete all bonuses
+        const bonusesSnap = await getDocs(collection(db, 'bonuses'));
+        for (const docSnap of bonusesSnap.docs) {
+          await deleteDoc(doc(db, 'bonuses', docSnap.id));
+        }
+
+        // Delete all login logs
+        const logsSnap = await getDocs(collection(db, 'loginLogs'));
+        for (const docSnap of logsSnap.docs) {
+          await deleteDoc(doc(db, 'loginLogs', docSnap.id));
+        }
+
+        showToast('All data cleared successfully!', 'success');
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to clear data.', 'error');
+      }
+      btn.disabled = false;
+      btn.innerHTML = '⚠️ Clear All User Data';
+    };
+
+    window.logout = function () {
+      sessionStorage.removeItem('ishareAdmin');
+      localStorage.removeItem('ishareAdmin');
+    };
+
+    loadSettings();
+  </script>
+
+  <script>
+    function openSidebar() {
+      document.getElementById('sidebar').classList.add('open');
+      document.getElementById('overlay').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('overlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  </script>
+</body>
+</html>
